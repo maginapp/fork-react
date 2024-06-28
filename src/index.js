@@ -2,14 +2,13 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import HookApp from './HookApp';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
- <>
-   <App />
-   {/* <div><p>1</p></div> */}
- </>
+   <HookApp />
+   // <App />
 );
 // root.render(
 //   <React.StrictMode>

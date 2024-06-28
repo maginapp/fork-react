@@ -514,6 +514,7 @@ function commitHookEffectListUnmount(
   finishedWork: Fiber,
   nearestMountedAncestor: Fiber | null,
 ) {
+  console.log('???? commitHookEffectList Unmount');
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
   if (lastEffect !== null) {
@@ -560,6 +561,7 @@ function commitHookEffectListUnmount(
 }
 
 function commitHookEffectListMount(flags: HookFlags, finishedWork: Fiber) {
+  console.log('???? commitHookEffectList Mount');
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
   if (lastEffect !== null) {
@@ -2804,6 +2806,7 @@ function commitPassiveMountOnFiber(
   committedLanes: Lanes,
   committedTransitions: Array<Transition> | null,
 ): void {
+  console.log('???? commitPassive MountOnFiber');
   switch (finishedWork.tag) {
     case FunctionComponent:
     case ForwardRef:
@@ -3071,6 +3074,7 @@ function commitPassiveUnmountEffects_complete() {
 }
 
 function commitPassiveUnmountOnFiber(finishedWork: Fiber): void {
+  console.log('???? commitPassive UnmountOnFiber');
   switch (finishedWork.tag) {
     case FunctionComponent:
     case ForwardRef:

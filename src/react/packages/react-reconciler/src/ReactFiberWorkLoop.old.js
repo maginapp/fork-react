@@ -689,6 +689,7 @@ export function isUnsafeClassRenderPhaseUpdate(fiber: Fiber) {
 // root has work on. This function is called on every update, and right before
 // exiting a task.
 function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
+  console.log('???? ensureRootIsScheduled', root, currentTime);
   const existingCallbackNode = root.callbackNode;
 
   // Check if any lanes are being starved by other work. If so, mark them as
@@ -873,6 +874,14 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
     !includesBlockingLane(root, lanes) &&
     !includesExpiredLane(root, lanes) &&
     (disableSchedulerTimeoutInWorkLoop || !didTimeout);
+
+
+  console.log('???? ', {
+    root,
+    lanes,
+    disableSchedulerTimeoutInWorkLoop,
+    didTimeout
+  })    
   let exitStatus = shouldTimeSlice
     ? renderRootConcurrent(root, lanes)
     : renderRootSync(root, lanes);
@@ -946,6 +955,9 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
       // or, if something suspended, wait to commit it after a timeout.
       root.finishedWork = finishedWork;
       root.finishedLanes = lanes;
+      console.log('???? finishConcurrentRender will commitRoot', {
+        root, exitStatus, lanes
+      });
       finishConcurrentRender(root, exitStatus, lanes);
     }
   }
@@ -1734,6 +1746,7 @@ function renderRootSync(root: FiberRoot, lanes: Lanes) {
 // The work loop is an extremely hot path. Tell Closure not to inline it.
 /** @noinline */
 function workLoopSync() {
+  console.log('???? workLoopSync');
   // Already timed out, so perform work without checking if we need to yield.
   while (workInProgress !== null) {
     performUnitOfWork(workInProgress);
@@ -1822,6 +1835,7 @@ function renderRootConcurrent(root: FiberRoot, lanes: Lanes) {
 
 /** @noinline */
 function workLoopConcurrent() {
+  console.log('???? workLoopConcurrent');
   // Perform work until Scheduler asks us to yield
   while (workInProgress !== null && !shouldYield()) {
     performUnitOfWork(workInProgress);
@@ -1960,6 +1974,7 @@ function commitRoot(
   recoverableErrors: null | Array<CapturedValue<mixed>>,
   transitions: Array<Transition> | null,
 ) {
+  console.log('???? commitRoot');
   // TODO: This no longer makes any sense. We already wrap the mutation and
   // layout phases. Should be able to remove.
   const previousUpdateLanePriority = getCurrentUpdatePriority();
@@ -2442,6 +2457,7 @@ function flushPassiveEffectsImpl() {
   const prevExecutionContext = executionContext;
   executionContext |= CommitContext;
 
+  console.log('???? commitPassive');
   commitPassiveUnmountEffects(root.current);
   commitPassiveMountEffects(root, root.current, lanes, transitions);
 
