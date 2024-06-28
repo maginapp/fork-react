@@ -1,5 +1,5 @@
 import './App.css';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 
 function Test() {
   useEffect(() => {
@@ -25,6 +25,10 @@ function App() {
   }, [visible])
 
   console.log('???? render APP FCx');
+
+  useLayoutEffect(() => {
+    console.log('???? useLayoutEffect')
+  }, [])
 
   useEffect(() => {
     console.log('???? useEffect2', visible)

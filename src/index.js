@@ -3,11 +3,17 @@ import * as ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import HookApp from './HookApp';
+import Simple from './Simple';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
+   <>
    <HookApp />
+   {/* <Simple /> */}
+   <div key={'hook-sib-1'}><p>123</p>789</div>
+   <p  key={'hook-sib-2'}>456</p>
+   </>
    // <App />
 );
 // root.render(

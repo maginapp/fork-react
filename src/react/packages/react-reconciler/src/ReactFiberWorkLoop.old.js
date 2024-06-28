@@ -839,6 +839,7 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
   // Flush any pending passive effects before deciding which lanes to work on,
   // in case they schedule additional work.
   const originalCallbackNode = root.callbackNode;
+  console.log('???? flushPassiveEffects performConcurrentWorkOnRoot');
   const didFlushPassiveEffects = flushPassiveEffects();
   if (didFlushPassiveEffects) {
     // Something in the passive effect phase may have canceled the current task.
@@ -1242,6 +1243,7 @@ function performSyncWorkOnRoot(root) {
     throw new Error('Should not already be working.');
   }
 
+  console.log('???? flushPassiveEffects performSyncWorkOnRoot');
   flushPassiveEffects();
 
   let lanes = getNextLanes(root, NoLanes);
@@ -1379,6 +1381,8 @@ export function flushSync(fn) {
     rootWithPendingPassiveEffects.tag === LegacyRoot &&
     (executionContext & (RenderContext | CommitContext)) === NoContext
   ) {
+
+    console.log('???? flushPassiveEffects flushSync 1');
     flushPassiveEffects();
   }
 
@@ -1997,6 +2001,7 @@ function commitRoot(
   return null;
 }
 
+// cpstd commitRootImpl
 function commitRootImpl(
   root: FiberRoot,
   recoverableErrors: null | Array<CapturedValue<mixed>>,
@@ -2010,6 +2015,7 @@ function commitRootImpl(
     // no more pending effects.
     // TODO: Might be better if `flushPassiveEffects` did not automatically
     // flush synchronous work at the end, to avoid factoring hazards like this.
+    console.log('???? flushPassiveEffects commitRootImpl do while');
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();
@@ -2104,6 +2110,7 @@ function commitRootImpl(
       // with setTimeout
       pendingPassiveTransitions = transitions;
       scheduleCallback(NormalSchedulerPriority, () => {
+        console.log('???? flushPassiveEffects scheduleCallback');
         flushPassiveEffects();
         // This render triggered passive effects: release the root cache pool
         // *after* passive effects fire to avoid freeing a cache pool that may
@@ -2143,6 +2150,9 @@ function commitRootImpl(
     // of the effect list for each phase: all mutation effects come before all
     // layout effects, and so on.
 
+    // cpstd "before mutation" phase.
+    console.log('???? will "before mutation" phase');
+
     // The first phase a "before mutation" phase. We use this phase to read the
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
@@ -2163,6 +2173,9 @@ function commitRootImpl(
       rootCommittingMutationOrLayoutEffects = root;
     }
 
+    // cpstd "mutation" phase.
+    console.log('???? will "mutation" phase');
+
     // The next phase is the mutation phase, where we mutate the host tree.
     commitMutationEffects(root, finishedWork, lanes);
 
@@ -2172,6 +2185,9 @@ function commitRootImpl(
       }
     }
     resetAfterCommit(root.containerInfo);
+
+    // cpstd "layout" phase.
+    console.log('???? will "layout" phase');
 
     // The work-in-progress tree is now the current tree. This must come after
     // the mutation phase, so that the previous tree is still current during
@@ -2315,6 +2331,8 @@ function commitRootImpl(
     includesSomeLane(pendingPassiveEffectsLanes, SyncLane) &&
     root.tag !== LegacyRoot
   ) {
+
+    console.log('???? flushPassiveEffects after "layout" phase');
     flushPassiveEffects();
   }
 
@@ -2413,6 +2431,7 @@ export function enqueuePendingPassiveProfilerEffect(fiber: Fiber): void {
     if (!rootDoesHavePassiveEffects) {
       rootDoesHavePassiveEffects = true;
       scheduleCallback(NormalSchedulerPriority, () => {
+        console.log('???? flushPassiveEffects enqueuePendingPassiveProfilerEffect');
         flushPassiveEffects();
         return null;
       });

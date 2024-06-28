@@ -514,16 +514,22 @@ function commitHookEffectListUnmount(
   finishedWork: Fiber,
   nearestMountedAncestor: Fiber | null,
 ) {
-  console.log('???? commitHookEffectList Unmount');
+  // console.log('???? commitHookEffectList Unmount');
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
   if (lastEffect !== null) {
     const firstEffect = lastEffect.next;
     let effect = firstEffect;
+    console.log('???? commitHookEffectList Unmount',
+       finishedWork, 
+       flags,
+       finishedWork.updateQueue.lastEffect?.next.tag && flags
+    );
     do {
       if ((effect.tag & flags) === flags) {
         // Unmount
         const destroy = effect.destroy;
+        // console.log('???? effect', effect.destroy)
         effect.destroy = undefined;
         if (destroy !== undefined) {
           if (enableSchedulingProfiler) {
@@ -561,7 +567,7 @@ function commitHookEffectListUnmount(
 }
 
 function commitHookEffectListMount(flags: HookFlags, finishedWork: Fiber) {
-  console.log('???? commitHookEffectList Mount');
+  console.log('???? commitHookEffectList Mount', finishedWork);
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
   if (lastEffect !== null) {
@@ -1504,6 +1510,7 @@ function commitPlacement(finishedWork: Fiber): void {
 
   // Recursively insert all host nodes into the parent.
   const parentFiber = getHostParentFiber(finishedWork);
+  console.log('??? commitPlacement 操作dom', parentFiber.tag, parentFiber)
 
   // Note: these two variables *must* always be updated together.
   switch (parentFiber.tag) {
@@ -1545,8 +1552,10 @@ function insertOrAppendPlacementNodeIntoContainer(
 ): void {
   const {tag} = node;
   const isHost = tag === HostComponent || tag === HostText;
+  // console.log('???? insertOrAppendPlacementNodeIntoContainer', node, 'node.child', node.child, 'before', before, 'parent', parent, tag);
   if (isHost) {
     const stateNode = node.stateNode;
+    // console.log('???? HostComponent HostText', parent, stateNode, before);
     if (before) {
       insertInContainerBefore(parent, stateNode, before);
     } else {
@@ -1558,6 +1567,7 @@ function insertOrAppendPlacementNodeIntoContainer(
     // the portal directly.
   } else {
     const child = node.child;
+    // console.log('???? HostRoot', child, child.sibling);
     if (child !== null) {
       insertOrAppendPlacementNodeIntoContainer(child, before, parent);
       let sibling = child.sibling;
@@ -2035,6 +2045,7 @@ export function isSuspenseBoundaryBeingHidden(
   return false;
 }
 
+// cpstd 调用commitMutationEffectsOnFiber
 export function commitMutationEffects(
   root: FiberRoot,
   finishedWork: Fiber,
@@ -2051,11 +2062,13 @@ export function commitMutationEffects(
   inProgressRoot = null;
 }
 
+// cpstd 调用 commitMutationEffectsOnFiber 遍历parentFiber的所有存在MutationMask副作用的子fiber
 function recursivelyTraverseMutationEffects(
   root: FiberRoot,
   parentFiber: Fiber,
   lanes: Lanes,
 ) {
+  console.log('???? recursivelyTraverseMutationEffects parentFiber', parentFiber, 'root', root, 'hasEffect', parentFiber.subtreeFlags & MutationMask);
   // Deletions effects can be scheduled on any fiber type. They need to happen
   // before the children effects hae fired.
   const deletions = parentFiber.deletions;
@@ -2082,6 +2095,7 @@ function recursivelyTraverseMutationEffects(
   setCurrentDebugFiberInDEV(prevDebugFiber);
 }
 
+// cpstp recursivelyTraverseMutationEffects 只在 commitMutationEffectsOnFiber内运行
 function commitMutationEffectsOnFiber(
   finishedWork: Fiber,
   root: FiberRoot,
@@ -2089,6 +2103,8 @@ function commitMutationEffectsOnFiber(
 ) {
   const current = finishedWork.alternate;
   const flags = finishedWork.flags;
+
+  console.log('???? commitMutationEffectsOnFiber', finishedWork.tag);
 
   // The effect flag should be checked *after* we refine the type of fiber,
   // because the fiber tag is more specific. An exception is any flag related
@@ -2103,6 +2119,7 @@ function commitMutationEffectsOnFiber(
 
       if (flags & Update) {
         try {
+          console.log('???? commitMutationEffectsOnFiber run commitHookEffectList')
           commitHookEffectListUnmount(
             HookInsertion | HookHasEffect,
             finishedWork,
@@ -2164,6 +2181,7 @@ function commitMutationEffectsOnFiber(
     case HostComponent: {
       recursivelyTraverseMutationEffects(root, finishedWork, lanes);
       commitReconciliationEffects(finishedWork);
+      console.log('???? commitMutation HostComponent');
 
       if (flags & Ref) {
         if (current !== null) {
@@ -2224,6 +2242,7 @@ function commitMutationEffectsOnFiber(
       return;
     }
     case HostText: {
+      console.log('???? commitMutation HostText');
       recursivelyTraverseMutationEffects(root, finishedWork, lanes);
       commitReconciliationEffects(finishedWork);
 
@@ -2254,7 +2273,9 @@ function commitMutationEffectsOnFiber(
       return;
     }
     case HostRoot: {
+      console.log('???? commitMutation HostRoot');
       recursivelyTraverseMutationEffects(root, finishedWork, lanes);
+      console.log('???? commitMutation HostRoot recursivelyTraverseMutationEffects end');
       commitReconciliationEffects(finishedWork);
 
       if (flags & Update) {
@@ -2441,6 +2462,7 @@ function commitReconciliationEffects(finishedWork: Fiber) {
   // type. They needs to happen after the children effects have fired, but
   // before the effects on this fiber have fired.
   const flags = finishedWork.flags;
+  console.log('???? commitReconciliationEffects', flags, flags & Placement, finishedWork)
   if (flags & Placement) {
     try {
       commitPlacement(finishedWork);
