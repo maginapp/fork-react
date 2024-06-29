@@ -531,6 +531,7 @@ export function scheduleUpdateOnFiber(
   lane: Lane,
   eventTime: number,
 ) {
+  console.log('???? useState / updateContainer can trigger scheduleUpdateOnFiber');
   checkForNestedUpdates();
 
   if (__DEV__) {
@@ -702,6 +703,9 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
     root === workInProgressRoot ? workInProgressRootRenderLanes : NoLanes,
   );
 
+  // cpstd 某些场景初始化 nextLanes newCallbackPriority 都是16 10000
+  console.log('???? just updateState nextLanes is 1', nextLanes)
+
   if (nextLanes === NoLanes) {
     // Special case: There's nothing to work on.
     if (existingCallbackNode !== null) {
@@ -714,6 +718,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
 
   // We use the highest priority lane to represent the priority of the callback.
   const newCallbackPriority = getHighestPriorityLane(nextLanes);
+  // console.log('???? just updateState newCallbackPriority is 1', newCallbackPriority)
 
   // Check if there's an existing task. We may be able to reuse it.
   const existingCallbackPriority = root.callbackPriority;
@@ -761,6 +766,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
       }
       scheduleLegacySyncCallback(performSyncWorkOnRoot.bind(null, root));
     } else {
+      console.log('???? scheduleSyncCallback performSyncWorkOnRoot.bind');
       scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root));
     }
     if (supportsMicrotasks) {
@@ -771,6 +777,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
         // of `act`.
         ReactCurrentActQueue.current.push(flushSyncCallbacks);
       } else {
+        console.log('???? scheduleMicrotask');
         scheduleMicrotask(() => {
           // In Safari, appending an iframe forces microtasks to run.
           // https://github.com/facebook/react/issues/22459
@@ -780,6 +787,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
             (executionContext & (RenderContext | CommitContext)) ===
             NoContext
           ) {
+            console.log('???? scheduleMicrotask flushSyncCallbacks');
             // Note that this would still prematurely flush the callbacks
             // if this happens outside render or commit phase (e.g. in an event).
             flushSyncCallbacks();
@@ -810,6 +818,7 @@ function ensureRootIsScheduled(root: FiberRoot, currentTime: number) {
         schedulerPriorityLevel = NormalSchedulerPriority;
         break;
     }
+    console.log('???? scheduleCallback performConcurrentWorkOnRoot')
     newCallbackNode = scheduleCallback(
       schedulerPriorityLevel,
       performConcurrentWorkOnRoot.bind(null, root),
@@ -839,8 +848,8 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
   // Flush any pending passive effects before deciding which lanes to work on,
   // in case they schedule additional work.
   const originalCallbackNode = root.callbackNode;
-  console.log('???? flushPassiveEffects performConcurrentWorkOnRoot');
   const didFlushPassiveEffects = flushPassiveEffects();
+  console.log('???? flushPassiveEffects performConcurrentWorkOnRoot didFlushPassiveEffects', didFlushPassiveEffects);
   if (didFlushPassiveEffects) {
     // Something in the passive effect phase may have canceled the current task.
     // Check if the task node for this root was changed.
@@ -877,7 +886,7 @@ function performConcurrentWorkOnRoot(root, didTimeout) {
     (disableSchedulerTimeoutInWorkLoop || !didTimeout);
 
 
-  console.log('???? ', {
+  console.log('???? performConcurrentWorkOnRoot', {
     root,
     lanes,
     disableSchedulerTimeoutInWorkLoop,
@@ -1041,6 +1050,7 @@ function finishConcurrentRender(root, exitStatus, lanes) {
     case RootErrored: {
       // We should have already attempted to retry this tree. If we reached
       // this point, it errored again. Commit it.
+      console.log('???? commitRoot RootErrored');
       commitRoot(
         root,
         workInProgressRootRecoverableErrors,
@@ -1096,6 +1106,7 @@ function finishConcurrentRender(root, exitStatus, lanes) {
           break;
         }
       }
+      console.log('???? commitRoot RootSuspended');
       // The work expired. Commit immediately.
       commitRoot(
         root,
@@ -1144,6 +1155,7 @@ function finishConcurrentRender(root, exitStatus, lanes) {
         }
       }
 
+      console.log('???? commitRoot RootSuspendedWithDelay');
       // Commit the placeholder.
       commitRoot(
         root,
@@ -1153,6 +1165,7 @@ function finishConcurrentRender(root, exitStatus, lanes) {
       break;
     }
     case RootCompleted: {
+      console.log('???? commitRoot RootCompleted');
       // The work completed. Ready to commit.
       commitRoot(
         root,
@@ -1243,7 +1256,7 @@ function performSyncWorkOnRoot(root) {
     throw new Error('Should not already be working.');
   }
 
-  console.log('???? flushPassiveEffects performSyncWorkOnRoot');
+  console.log('???? flushPassiveEffects performSyncWorkOnRoot', rootWithPendingPassiveEffects);
   flushPassiveEffects();
 
   let lanes = getNextLanes(root, NoLanes);
@@ -1283,6 +1296,7 @@ function performSyncWorkOnRoot(root) {
   const finishedWork: Fiber = (root.current.alternate: any);
   root.finishedWork = finishedWork;
   root.finishedLanes = lanes;
+  console.log('???? commitRoot performSyncWorkOnRoot');
   commitRoot(
     root,
     workInProgressRootRecoverableErrors,
@@ -2017,6 +2031,7 @@ function commitRootImpl(
     // flush synchronous work at the end, to avoid factoring hazards like this.
     console.log('???? flushPassiveEffects commitRootImpl do while');
     flushPassiveEffects();
+    // console.log('???? flushPassiveEffects end rootWithPendingPassiveEffects', rootWithPendingPassiveEffects)
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();
 
@@ -2101,6 +2116,7 @@ function commitRootImpl(
   ) {
     if (!rootDoesHavePassiveEffects) {
       rootDoesHavePassiveEffects = true;
+      console.log('???? flushPassiveEffects will add scheduleCallback now ==> ', performance.now());
       pendingPassiveEffectsRemainingLanes = remainingLanes;
       // workInProgressTransitions might be overwritten, so we want
       // to store it in pendingPassiveTransitions until they get processed
@@ -2242,10 +2258,19 @@ function commitRootImpl(
   }
 
   const rootDidHavePassiveEffects = rootDoesHavePassiveEffects;
-
   if (rootDoesHavePassiveEffects) {
     // This commit has passive effects. Stash a reference to them. But don't
     // schedule a callback until after flushing layout work.
+    console.log(
+      '????? rootDoesHavePassiveEffects ',
+      rootDoesHavePassiveEffects,
+      '; now ==> ',
+      performance.now(),
+      {
+        lanes,
+        lanesStr: lanes.toString(2)
+      }
+    )
     rootDoesHavePassiveEffects = false;
     rootWithPendingPassiveEffects = root;
     pendingPassiveEffectsLanes = lanes;
@@ -2327,12 +2352,18 @@ function commitRootImpl(
   // TODO: We can optimize this by not scheduling the callback earlier. Since we
   // currently schedule the callback in multiple places, will wait until those
   // are consolidated.
+  console.log('???? check flushPassiveEffects', {
+    res: includesSomeLane(pendingPassiveEffectsLanes, SyncLane),
+    pendingPassiveEffectsLanes,
+    rootTag: root.tag,
+    LegacyRoot
+  })
   if (
     includesSomeLane(pendingPassiveEffectsLanes, SyncLane) &&
     root.tag !== LegacyRoot
   ) {
 
-    console.log('???? flushPassiveEffects after "layout" phase');
+    console.log('???? check flushPassiveEffects after "layout" phase');
     flushPassiveEffects();
   }
 
@@ -2429,6 +2460,7 @@ export function enqueuePendingPassiveProfilerEffect(fiber: Fiber): void {
   if (enableProfilerTimer && enableProfilerCommitHooks) {
     pendingPassiveProfilerEffects.push(fiber);
     if (!rootDoesHavePassiveEffects) {
+      // console.log('???? enqueuePendingPassiveProfilerEffect rootDoesHavePassiveEffects = true')
       rootDoesHavePassiveEffects = true;
       scheduleCallback(NormalSchedulerPriority, () => {
         console.log('???? flushPassiveEffects enqueuePendingPassiveProfilerEffect');

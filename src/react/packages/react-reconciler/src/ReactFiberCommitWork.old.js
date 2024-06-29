@@ -2117,6 +2117,7 @@ function commitMutationEffectsOnFiber(
       recursivelyTraverseMutationEffects(root, finishedWork, lanes);
       commitReconciliationEffects(finishedWork);
 
+
       if (flags & Update) {
         try {
           console.log('???? commitMutationEffectsOnFiber run commitHookEffectList')
@@ -2165,6 +2166,7 @@ function commitMutationEffectsOnFiber(
           }
         }
       }
+      console.log('???? dispatchSetState commitMutationEffectsOnFiber', finishedWork);
       return;
     }
     case ClassComponent: {

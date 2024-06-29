@@ -380,6 +380,7 @@ export function updateContainer(
 
   const root = enqueueUpdate(current, update, lane);
   if (root !== null) {
+    console.log('???? updateContainer scheduleUpdateOnFiber current:', current);
     scheduleUpdateOnFiber(root, current, lane, eventTime);
     entangleTransitions(root, current, lane);
   }

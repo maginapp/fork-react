@@ -568,6 +568,10 @@ export function bailoutHooks(
   workInProgress: Fiber,
   lanes: Lanes,
 ) {
+  console.log('?????? bailoutHooks', {
+    flags: workInProgress.flags.toString(2),
+    _flags: workInProgress.flags,
+  });
   workInProgress.updateQueue = current.updateQueue;
   // TODO: Don't need to reset the flags here, because they're reset in the
   // complete phase (bubbleProperties).
@@ -585,6 +589,10 @@ export function bailoutHooks(
   } else {
     workInProgress.flags &= ~(PassiveEffect | UpdateEffect);
   }
+  console.log('?????? bailoutHooks end', {
+    flags: workInProgress.flags.toString(2),
+    _flags: workInProgress.flags,
+  });
   current.lanes = removeLanes(current.lanes, lanes);
 }
 
@@ -1531,12 +1539,14 @@ function mountState<S>(
     currentlyRenderingFiber,
     queue,
   ): any));
+  console.log('???? mountState dispatchSetState', dispatch);
   return [hook.memoizedState, dispatch];
 }
 
 function updateState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
+  console.log('????? updateState initialState: "', initialState, '"');
   return updateReducer(basicStateReducer, (initialState: any));
 }
 
@@ -2235,6 +2245,17 @@ function dispatchSetState<S, A>(
   queue: UpdateQueue<S, A>,
   action: A,
 ) {
+  console.log('???? dispatchSetState fiber start', {
+    fiber,
+    tag: fiber.tag.toString(2),
+    flags: fiber.flags.toString(2),
+    subtreeFlags: fiber.subtreeFlags.toString(2),
+    lanes: fiber.lanes.toString(2),
+    _tag: fiber.tag,
+    _flags: fiber.flags,
+    _subtreeFlags: fiber.subtreeFlags,
+    _lanes: fiber.lanes,
+  });
   if (__DEV__) {
     if (typeof arguments[3] === 'function') {
       console.error(
@@ -2254,6 +2275,9 @@ function dispatchSetState<S, A>(
     eagerState: null,
     next: (null: any),
   };
+  
+  console.log('???? dispatchSetState update', update, lane, 'action', action, 'isRenderPhaseUpdate(fiber)', isRenderPhaseUpdate(fiber));
+
 
   if (isRenderPhaseUpdate(fiber)) {
     enqueueRenderPhaseUpdate(queue, update);
@@ -2275,6 +2299,7 @@ function dispatchSetState<S, A>(
         }
         try {
           const currentState: S = (queue.lastRenderedState: any);
+          console.log('???? dispatchSetState trigger lastRenderedReducer');
           const eagerState = lastRenderedReducer(currentState, action);
           // Stash the eagerly computed state, and the reducer used to compute
           // it, on the update object. If the reducer hasn't changed by the
@@ -2306,9 +2331,11 @@ function dispatchSetState<S, A>(
       }
     }
 
+    console.log('???? enqueueConcurrentHookUpdate')
     const root = enqueueConcurrentHookUpdate(fiber, queue, update, lane);
     if (root !== null) {
       const eventTime = requestEventTime();
+      console.log('??? useState trigger dispatchSetState scheduleUpdateOnFiber')
       scheduleUpdateOnFiber(root, fiber, lane, eventTime);
       entangleTransitionUpdate(root, queue, lane);
     }
