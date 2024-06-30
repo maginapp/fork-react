@@ -430,7 +430,9 @@ export function renderWithHooks<Props, SecondArg>(
         : HooksDispatcherOnUpdate;
   }
 
+  console.log('??? event run:Component');
   let children = Component(props, secondArg);
+  console.log('??? event run:Component children', children);
 
   // Check if there was a render phase update
   if (didScheduleRenderPhaseUpdateDuringThisPass) {

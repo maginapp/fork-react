@@ -1014,6 +1014,17 @@ function completeWork(
             currentHostContext,
             workInProgress,
           );
+          console.log('???? event createInstance', instance, workInProgress.key, {
+            currentHostContext,
+            rootContainerInstance,
+            workInProgress
+          });
+          if (typeof window !== 'undefined' && !window.createInstance?.[workInProgress.key]) {
+            window.createInstance = window.createInstance || {};
+            window.createInstance[workInProgress.key] = true;
+            console.log('???? event createInstance', instance.click);
+            instance.click();
+          }
 
           appendAllChildren(instance, workInProgress, false, false);
 
@@ -1033,6 +1044,13 @@ function completeWork(
           ) {
             markUpdate(workInProgress);
           }
+          if (typeof window !== 'undefined' && !window.finalizeInitialChildren) {
+            window.finalizeInitialChildren = window.finalizeInitialChildren || {};
+            window.finalizeInitialChildren[workInProgress.key] = true;
+            console.log('???? event finalizeInitialChildren', instance.click);
+            instance.click();
+          }
+
         }
 
         if (workInProgress.ref !== null) {

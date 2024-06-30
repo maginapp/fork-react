@@ -2195,12 +2195,30 @@ function commitRootImpl(
     // The next phase is the mutation phase, where we mutate the host tree.
     commitMutationEffects(root, finishedWork, lanes);
 
+    if (!window.endcommitMutationEffects) {
+      window.endcommitMutationEffects = true;
+      console.log('???? event endcommitMutationEffects');
+      document.querySelector('button').click()
+    }
+
     if (enableCreateEventHandleAPI) {
       if (shouldFireAfterActiveInstanceBlur) {
         afterActiveInstanceBlur();
       }
     }
+    if (!window.afterEnableCreateEventHandleAPI) {
+      window.afterEnableCreateEventHandleAPI = true;
+      console.log('???? event afterEnableCreateEventHandleAPI');
+      document.querySelector('button').click()
+    }
     resetAfterCommit(root.containerInfo);
+    if (!window.afterResetAfterCommit) {
+      window.afterResetAfterCommit = true;
+      console.log('???? event afterResetAfterCommit');
+      document.querySelector('button').click()
+    }
+
+
 
     // cpstd "layout" phase.
     console.log('???? will "layout" phase');

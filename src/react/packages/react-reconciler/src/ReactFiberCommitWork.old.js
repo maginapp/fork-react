@@ -1556,6 +1556,8 @@ function insertOrAppendPlacementNodeIntoContainer(
   if (isHost) {
     const stateNode = node.stateNode;
     // console.log('???? HostComponent HostText', parent, stateNode, before);
+
+    console.log('???? event IntoContainer isHost', before);
     if (before) {
       insertInContainerBefore(parent, stateNode, before);
     } else {
@@ -1567,11 +1569,12 @@ function insertOrAppendPlacementNodeIntoContainer(
     // the portal directly.
   } else {
     const child = node.child;
-    // console.log('???? HostRoot', child, child.sibling);
     if (child !== null) {
+      console.log('???? event IntoContainer HostRoot child');
       insertOrAppendPlacementNodeIntoContainer(child, before, parent);
       let sibling = child.sibling;
       while (sibling !== null) {
+        console.log('???? event IntoContainer HostRoot child.sibling');
         insertOrAppendPlacementNodeIntoContainer(sibling, before, parent);
         sibling = sibling.sibling;
       }
@@ -1587,6 +1590,7 @@ function insertOrAppendPlacementNode(
   const {tag} = node;
   const isHost = tag === HostComponent || tag === HostText;
   if (isHost) {
+    console.log('???? event insertOrAppendPlacementNode isHost');
     const stateNode = node.stateNode;
     if (before) {
       insertBefore(parent, stateNode, before);
@@ -2068,7 +2072,7 @@ function recursivelyTraverseMutationEffects(
   parentFiber: Fiber,
   lanes: Lanes,
 ) {
-  console.log('???? recursivelyTraverseMutationEffects parentFiber', parentFiber, 'root', root, 'hasEffect', parentFiber.subtreeFlags & MutationMask);
+  // console.log('???? recursivelyTraverseMutationEffects parentFiber', parentFiber, 'root', root, 'hasEffect', parentFiber.subtreeFlags & MutationMask);
   // Deletions effects can be scheduled on any fiber type. They need to happen
   // before the children effects hae fired.
   const deletions = parentFiber.deletions;
@@ -2115,6 +2119,7 @@ function commitMutationEffectsOnFiber(
     case MemoComponent:
     case SimpleMemoComponent: {
       recursivelyTraverseMutationEffects(root, finishedWork, lanes);
+      console.log('???? event commitReconciliationEffects 操作dom');
       commitReconciliationEffects(finishedWork);
 
 
@@ -2464,7 +2469,7 @@ function commitReconciliationEffects(finishedWork: Fiber) {
   // type. They needs to happen after the children effects have fired, but
   // before the effects on this fiber have fired.
   const flags = finishedWork.flags;
-  console.log('???? commitReconciliationEffects', flags, flags & Placement, finishedWork)
+  // console.log('???? commitReconciliationEffects', flags, flags & Placement, finishedWork)
   if (flags & Placement) {
     try {
       commitPlacement(finishedWork);

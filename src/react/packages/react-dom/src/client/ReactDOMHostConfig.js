@@ -484,6 +484,8 @@ export function appendChildToContainer(
   container: Container,
   child: Instance | TextInstance,
 ): void {
+  console.log('???? event appendChildToContainer', parent, child, child.querySelector('button'));
+  // child.querySelector('button').click();
   let parentNode;
   if (container.nodeType === COMMENT_NODE) {
     parentNode = (container.parentNode: any);
